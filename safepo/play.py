@@ -90,7 +90,7 @@ def eval_single_agent(eval_dir, eval_episodes):
             eval_len += 1
             eval_done = terminated[0] or truncated[0]
 
-            # Follow cheetah with camera
+            # Follow with camera
             cam = eval_env.mujoco_renderer.viewer.cam
             agent_pos = eval_env.data.qpos[0:3]
             cam.elevation = -10

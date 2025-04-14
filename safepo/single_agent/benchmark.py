@@ -35,6 +35,7 @@ def parse_args():
         default=[
             "pcpo",
             "ppo_lag",
+            "ppo",
             "cup",
             "focops",
             "rcpo",
@@ -107,6 +108,8 @@ if __name__ == "__main__":
                             str(args.num_envs),
                             "--steps-per-epoch",
                             str(args.steps_per_epoch),
+                            "--device",
+                            "cuda"
                         ]
                     )
                 ]
