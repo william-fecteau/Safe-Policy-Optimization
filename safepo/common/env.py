@@ -15,24 +15,37 @@
 
 
 from __future__ import annotations
+
 try :
-    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.ShadowHandCatchOver2underarm_Safe_finger import ShadowHandCatchOver2Underarm_Safe_finger
-    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.ShadowHandCatchOver2underarm_Safe_joint import ShadowHandCatchOver2Underarm_Safe_joint
-    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.ShadowHandOver_Safe_finger import ShadowHandOver_Safe_finger
-    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.ShadowHandOver_Safe_joint import ShadowHandOver_Safe_joint
-    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.freight_franka_pick_and_place import FreightFrankaPickAndPlace
-    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.freight_franka_close_drawer import FreightFrankaCloseDrawer
-    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.base.multi_vec_task import ShadowHandMultiVecTaskPython, FreightFrankaMultiVecTaskPython
     from safepo.common.wrappers import GymnasiumIsaacEnv
+    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.base.multi_vec_task import (
+        FreightFrankaMultiVecTaskPython, ShadowHandMultiVecTaskPython)
+    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.freight_franka_close_drawer import \
+        FreightFrankaCloseDrawer
+    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.freight_franka_pick_and_place import \
+        FreightFrankaPickAndPlace
+    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.ShadowHandCatchOver2underarm_Safe_finger import \
+        ShadowHandCatchOver2Underarm_Safe_finger
+    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.ShadowHandCatchOver2underarm_Safe_joint import \
+        ShadowHandCatchOver2Underarm_Safe_joint
+    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.ShadowHandOver_Safe_finger import \
+        ShadowHandOver_Safe_finger
+    from safety_gymnasium.tasks.safe_isaac_gym.envs.tasks.ShadowHandOver_Safe_joint import \
+        ShadowHandOver_Safe_joint
 except ImportError:
     pass
 from typing import Callable
-import safety_gymnasium
-from safety_gymnasium.wrappers import SafeAutoResetWrapper, SafeRescaleAction, SafeUnsqueeze
-from safety_gymnasium.vector.async_vector_env import SafetyAsyncVectorEnv
-from safepo.common.wrappers import ShareSubprocVecEnv, ShareDummyVecEnv, ShareEnv, SafeNormalizeObservation, MultiGoalEnv
 
-def make_sa_mujoco_env(num_envs: int, env_id: str, seed: int|None = None):
+import safety_gymnasium
+from safepo.common.wrappers import (MultiGoalEnv, SafeNormalizeObservation,
+                                    ShareDummyVecEnv, ShareEnv,
+                                    ShareSubprocVecEnv)
+from safety_gymnasium.vector.async_vector_env import SafetyAsyncVectorEnv
+from safety_gymnasium.wrappers import (SafeAutoResetWrapper, SafeRescaleAction,
+                                       SafeUnsqueeze)
+
+
+def make_sa_mujoco_env(num_envs: int, env_id: str, seed: int|None = None, render_mode=None):
     """
     Creates and wraps an environment based on the specified parameters.
 
@@ -58,7 +71,7 @@ def make_sa_mujoco_env(num_envs: int, env_id: str, seed: int|None = None):
     if num_envs > 1:
         def create_env() -> Callable:
             """Creates an environment that can enable or disable the environment checker."""
-            env = safety_gymnasium.make(env_id)
+            env = safety_gymnasium.make(env_id, render_mode=render_mode)
             env = SafeRescaleAction(env, -1.0, 1.0)
             return env
         env_fns = [create_env for _ in range(num_envs)]
@@ -68,7 +81,7 @@ def make_sa_mujoco_env(num_envs: int, env_id: str, seed: int|None = None):
         obs_space = env.single_observation_space
         act_space = env.single_action_space
     else:
-        env = safety_gymnasium.make(env_id)
+        env = safety_gymnasium.make(env_id, render_mode=render_mode)
         env.reset(seed=seed)
         obs_space = env.observation_space
         act_space = env.action_space
