@@ -30,18 +30,18 @@ import seaborn as sns
 from pandas import DataFrame
 
 algo_map = {
-    'cpo': 'CPO',
-    'ppo_lag': 'PPOLag',
-    'cppo_pid': 'CPPOPID',
-    'cup': 'CUP',
-    'trpo_lag': 'TRPOLag',
-    'pcpo': 'PCPO',
-    'rcpo': 'RCPO',
-    'focops': 'FOCOPS',
-    'happo': 'HAPPO',
-    'mappo': 'MAPPO',
-    'mappolag': 'MAPPOLag',
-    'macpo': 'MACPO',
+    "cpo": "CPO",
+    "ppo_lag": "PPOLag",
+    "cppo_pid": "CPPOPID",
+    "cup": "CUP",
+    "trpo_lag": "TRPOLag",
+    "pcpo": "PCPO",
+    "rcpo": "RCPO",
+    "focops": "FOCOPS",
+    "happo": "HAPPO",
+    "mappo": "MAPPO",
+    "mappolag": "MAPPOLag",
+    "macpo": "MACPO",
 }
 
 
@@ -64,9 +64,9 @@ class Plotter:
         self,
         sub_figures: np.ndarray,
         data: list[DataFrame],
-        xaxis: str = 'Steps',
-        value: str = 'Rewards',
-        condition: str = 'Condition1',
+        xaxis: str = "Steps",
+        value: str = "Rewards",
+        condition: str = "Condition1",
         smooth: int = 1,
         **kwargs: Any,
     ) -> None:
@@ -88,54 +88,54 @@ class Plotter:
             for datum in data:
                 x = np.asarray(datum[value])
                 z = np.ones(len(x))
-                smoothed_x = np.convolve(x, y, 'same') / np.convolve(z, y, 'same')
+                smoothed_x = np.convolve(x, y, "same") / np.convolve(z, y, "same")
                 datum[value] = smoothed_x
-                x = np.asarray(datum['Costs'])
+                x = np.asarray(datum["Costs"])
                 z = np.ones(len(x))
-                smoothed_x = np.convolve(x, y, 'same') / np.convolve(z, y, 'same')
-                datum['Costs'] = smoothed_x
+                smoothed_x = np.convolve(x, y, "same") / np.convolve(z, y, "same")
+                datum["Costs"] = smoothed_x
 
         if isinstance(data, list):
             data_to_plot = pd.concat(data, ignore_index=True)
         sns.lineplot(
             data=data_to_plot,
             x=xaxis,
-            y='Rewards',
+            y="Rewards",
             hue=condition,
-            errorbar='sd',
+            errorbar="sd",
             ax=sub_figures[0],
             **kwargs,
         )
         sns.lineplot(
             data=data_to_plot,
             x=xaxis,
-            y='Costs',
+            y="Costs",
             hue=condition,
-            errorbar='sd',
+            errorbar="sd",
             ax=sub_figures[1],
             **kwargs,
         )
         sub_figures[0].legend(
-            loc='upper center',
+            loc="upper center",
             ncol=6,
             handlelength=1,
-            mode='expand',
+            mode="expand",
             borderaxespad=0.0,
-            prop={'size': 13},
+            prop={"size": 13},
         )
         sub_figures[1].legend(
-            loc='upper center',
+            loc="upper center",
             ncol=6,
             handlelength=1,
-            mode='expand',
+            mode="expand",
             borderaxespad=0.0,
-            prop={'size': 13},
+            prop={"size": 13},
         )
 
         xscale = np.max(np.asarray(data_to_plot[xaxis], dtype=np.int32)) > 5e3
         if xscale:
             # just some formatting niceness: x-axis scale in scientific notation if max x is large
-            plt.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
+            plt.ticklabel_format(style="sci", axis="x", scilimits=(0, 0))
 
         plt.tight_layout(pad=0.5)
 
@@ -160,55 +160,57 @@ class Plotter:
         """
         datasets: list[DataFrame] = []
         for root, _, files in os.walk(logdir):
-            if 'progress.csv' in files:
+            if "progress.csv" in files:
                 exp_name = None
                 try:
-                    with open(os.path.join(root, 'config.json'), encoding='utf-8') as f:
+                    with open(os.path.join(root, "config.json"), encoding="utf-8") as f:
                         config = json.load(f)
-                        if 'exp_name' in config:
-                            exp_name = config['exp_name'].split('-')[-3]
+                        if "exp_name" in config:
+                            exp_name = config["exp_name"].split("-")[-3]
                 except FileNotFoundError as error:
-                    config_path = os.path.join(root, 'config.json')
+                    config_path = os.path.join(root, "config.json")
                     raise FileNotFoundError(
-                        f'Could not read from {config_path}'
+                        f"Could not read from {config_path}"
                     ) from error
-                condition1 = condition or exp_name or 'exp'
-                condition1 = algo_map[condition1] if condition1 in algo_map else condition1
-                condition2 = condition1 + '-' + str(self.exp_idx)
+                condition1 = condition or exp_name or "exp"
+                condition1 = (
+                    algo_map[condition1] if condition1 in algo_map else condition1
+                )
+                condition2 = condition1 + "-" + str(self.exp_idx)
                 self.exp_idx += 1
                 if condition1 not in self.units:
                     self.units[condition1] = 0
                 unit = self.units[condition1]
                 self.units[condition1] += 1
                 try:
-                    exp_data = pd.read_csv(os.path.join(root, 'progress.csv'))
+                    exp_data = pd.read_csv(os.path.join(root, "progress.csv"))
 
                 except FileNotFoundError as error:
-                    progress_path = os.path.join(root, 'progress.csv')
+                    progress_path = os.path.join(root, "progress.csv")
                     raise FileNotFoundError(
-                        f'Could not read from {progress_path}'
+                        f"Could not read from {progress_path}"
                     ) from error
                 performance = (
-                    'Metrics/EvalEpRet'
-                    if 'Metrics/EvalEpRet' in exp_data and use_eval_result
-                    else 'Metrics/EpRet'
+                    "Metrics/EvalEpRet"
+                    if "Metrics/EvalEpRet" in exp_data and use_eval_result
+                    else "Metrics/EpRet"
                 )
                 cost_performance = (
-                    'Metrics/EvalEpCost'
-                    if 'Metrics/EvalEpCost' in exp_data and use_eval_result
-                    else 'Metrics/EpCost'
+                    "Metrics/EvalEpCost"
+                    if "Metrics/EvalEpCost" in exp_data and use_eval_result
+                    else "Metrics/EpCost"
                 )
-                exp_data.insert(len(exp_data.columns), 'Unit', unit)
-                exp_data.insert(len(exp_data.columns), 'Condition1', condition1)
-                exp_data.insert(len(exp_data.columns), 'Condition2', condition2)
-                exp_data.insert(len(exp_data.columns), 'Rewards', exp_data[performance])
+                exp_data.insert(len(exp_data.columns), "Unit", unit)
+                exp_data.insert(len(exp_data.columns), "Condition1", condition1)
+                exp_data.insert(len(exp_data.columns), "Condition2", condition2)
+                exp_data.insert(len(exp_data.columns), "Rewards", exp_data[performance])
                 exp_data.insert(
-                    len(exp_data.columns), 'Costs', exp_data[cost_performance]
+                    len(exp_data.columns), "Costs", exp_data[cost_performance]
                 )
                 exp_data.insert(
                     len(exp_data.columns),
-                    'Steps',
-                    exp_data['Train/TotalSteps'],
+                    "Steps",
+                    exp_data["Train/TotalSteps"],
                 )
                 datasets.append(exp_data)
         return datasets
@@ -257,15 +259,15 @@ class Plotter:
             logdirs = [log for log in logdirs if all(x not in log for x in exclude)]
 
         # verify logdirs
-        print('Plotting from...\n' + '=' * self.div_line_width + '\n')
+        print("Plotting from...\n" + "=" * self.div_line_width + "\n")
         for logdir in logdirs:
             print(logdir)
-        print('\n' + '=' * self.div_line_width)
+        print("\n" + "=" * self.div_line_width)
 
         # make sure the legend is compatible with the logdirs
         assert not (legend) or (
             len(legend) == len(logdirs)
-        ), 'Must give a legend title for each set of experiments.'
+        ), "Must give a legend title for each set of experiments."
 
         # load data from logdirs
         data = []
@@ -282,17 +284,17 @@ class Plotter:
         self,
         all_logdirs: list[str],
         legend: list[str] | None = None,
-        xaxis: str = 'Steps',
-        value: str = 'Rewards',
+        xaxis: str = "Steps",
+        value: str = "Rewards",
         count: bool = False,
         cost_limit: float | None = None,
         smooth: int = 1,
         select: str | None = None,
         exclude: str | None = None,
-        estimator: str = 'mean',
-        save_dir: str = './',
+        estimator: str = "mean",
+        save_dir: str = "./",
         save_name: str | None = None,
-        save_format: str = 'png',
+        save_format: str = "png",
         show_image: bool = False,
         use_eval_result: bool = False,
     ) -> None:
@@ -343,14 +345,14 @@ class Plotter:
             show_image (bool, optional): Optional flag. If set, the plot will be displayed on screen.
                 Defaults to ``False``.
         """
-        assert xaxis is not None, 'Must specify xaxis'
+        assert xaxis is not None, "Must specify xaxis"
         data = self.get_all_datasets(
             all_logdirs, legend, select, exclude, use_eval_result
         )
-        condition = 'Condition2' if count else 'Condition1'
+        condition = "Condition2" if count else "Condition1"
         # choose what to show on main curve: mean? max? min?
         estimator = getattr(np, estimator)
-        sns.set()
+        sns.set_theme()
         fig, axes = plt.subplots(
             1,
             2,
@@ -366,39 +368,39 @@ class Plotter:
             estimator=estimator,
         )
         if cost_limit:
-            axes[1].axhline(y=cost_limit, ls='--', c='black', linewidth=2)
+            axes[1].axhline(y=cost_limit, ls="--", c="black", linewidth=2)
         if save_name is None:
-            save_name = all_logdirs[0].split('/')[-1]
+            save_name = all_logdirs[0].split("/")[-1]
         if show_image:
             plt.show()
-        save_dir = save_dir.replace('runs', 'results')
+        save_dir = save_dir.replace("runs", "results")
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
         fig.savefig(
-            os.path.join(save_dir, f'figure_{save_name}.{save_format}'),
-            bbox_inches='tight',
+            os.path.join(save_dir, f"figure_{save_name}.{save_format}"),
+            bbox_inches="tight",
             pad_inches=0.0,
         )
         fig.savefig(
-            os.path.join(save_dir, f'{save_name}.pdf'),
-            bbox_inches='tight',
+            os.path.join(save_dir, f"{save_name}.pdf"),
+            bbox_inches="tight",
             pad_inches=0.0,
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--logdir', type=str)
-    parser.add_argument('--legend', '-l', nargs='*')
-    parser.add_argument('--xaxis', '-x', default='Steps')
-    parser.add_argument('--value', '-y', default='Rewards', nargs='*')
-    parser.add_argument('--count', action='store_true')
-    parser.add_argument('--smooth', '-s', type=int, default=1)
-    parser.add_argument('--select', nargs='*')
-    parser.add_argument('--exclude', nargs='*')
-    parser.add_argument('--estimator', default='mean')
+    parser.add_argument("--logdir", type=str)
+    parser.add_argument("--legend", "-l", nargs="*")
+    parser.add_argument("--xaxis", "-x", default="Steps")
+    parser.add_argument("--value", "-y", default="Rewards", nargs="*")
+    parser.add_argument("--count", action="store_true")
+    parser.add_argument("--smooth", "-s", type=int, default=1)
+    parser.add_argument("--select", nargs="*")
+    parser.add_argument("--exclude", nargs="*")
+    parser.add_argument("--estimator", default="mean")
     parser.add_argument(
-        '--use-eval-result', type=lambda x: bool(strtobool(x)), default=False
+        "--use-eval-result", type=lambda x: bool(strtobool(x)), default=False
     )
     args = parser.parse_args()
 
