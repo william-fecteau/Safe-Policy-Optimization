@@ -24,13 +24,19 @@ from safepo.common.env import (
     make_sa_isaac_env,
 )
 from safepo.common.model import ActorVCritic
-from safepo.sim2real import scale_friction, scale_model_weight, add_noise_to_obs
+from safepo.sim2real import (
+    add_noise_to_friction,
+    add_noise_to_gravity,
+    add_noise_to_obs,
+)
 import numpy as np
 import joblib
 import torch
 
 
-def eval_single_agent(eval_dir, eval_episodes, friction_scale, weight_scale, add_noise):
+def eval_single_agent(
+    eval_dir, eval_episodes, disturb_gravity, disturb_friction, add_noise
+):
 
     torch.set_num_threads(4)
     config_path = eval_dir + "/config.json"
@@ -53,8 +59,10 @@ def eval_single_agent(eval_dir, eval_episodes, friction_scale, weight_scale, add
         num_envs=1, env_id=env_id, seed=None
     )
 
-    scale_friction(eval_env.unwrapped, friction_scale)
-    scale_model_weight(eval_env.unwrapped, weight_scale)
+    if disturb_gravity:
+        add_noise_to_gravity(eval_env.unwrapped)
+    if disturb_friction:
+        add_noise_to_friction(eval_env.unwrapped)
 
     model = ActorVCritic(
         obs_dim=obs_space.shape[0],
@@ -119,16 +127,14 @@ def benchmark_eval():
         help="the directory to save the evaluation result",
     )
     parser.add_argument(
-        "--friction-scale",
-        type=float,
-        default=1.0,
-        help="Scale factor to apply to default friction in environmnent.",
+        "--disturb-gravity",
+        type=int,
+        help="Disturb the physic engine default gravity.",
     )
     parser.add_argument(
-        "--weight-scale",
-        type=float,
-        default=1.0,
-        help="Scale factor to apply to the robot weight in environmnent.",
+        "--disturb-friction",
+        type=int,
+        help="Disturb the physic engine default ground friction.",
     )
     parser.add_argument(
         "--add-noise-to-obs",
@@ -160,8 +166,8 @@ def benchmark_eval():
                 reward, cost = eval_single_agent(
                     seed_path,
                     eval_episodes,
-                    args.friction_scale,
-                    args.weight_scale,
+                    args.disturb_gravity,
+                    args.disturb_friction,
                     args.add_noise_to_obs,
                 )
                 rewards.append(reward)
@@ -176,14 +182,14 @@ def benchmark_eval():
             out = f"""Episodes count: {eval_episodes}\n
   Algo: {algo}\n
   Env: {env}\n
-  Robot weight scale: {args.weight_scale}\n
-  Env friction scale: {args.friction_scale}\n
+  Disturb gravity: {args.disturb_gravity}\n
+  Disturb friction: {args.disturb_friction}\n
   Noisy obs: {args.add_noise_to_obs}\n
   Evaluated mean reward: {reward_mean}±{reward_std}\n
   Evaluated mean cost: {cost_mean}±{cost_std}\n\n"""
             print(out)
             output_file.write(
-                f"{algo}, {env}, {args.weight_scale}, {args.friction_scale}, {args.add_noise_to_obs}, {reward_mean}, {reward_std}, {cost_mean}, {cost_std}"
+                f"{algo}, {env}, {args.disturb_gravity}, {args.disturb_friction}, {args.add_noise_to_obs}, {reward_mean}, {reward_std}, {cost_mean}, {cost_std}\n"
             )
 
 

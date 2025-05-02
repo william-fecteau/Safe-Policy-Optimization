@@ -1,13 +1,17 @@
 import numpy as np
 
 
-def scale_friction(mujoco_env, scale_factor: float):
-    mujoco_env.model.geom_friction[:] *= scale_factor
+def add_noise_to_friction(mujoco_env):
+    mujoco_env.model.geom_friction[:] *= np.random.uniform(
+        0.8, 1.2, mujoco_env.model.geom_friction[:].shape
+    )
     return mujoco_env
 
 
-def scale_model_weight(mujoco_env, scale_factor: float):
-    mujoco_env.model.body_mass[:] *= scale_factor
+def add_noise_to_gravity(mujoco_env):
+    mujoco_env.model.opt.gravity[:] *= np.random.uniform(
+        0.8, 1.2, mujoco_env.model.opt.gravity[:].shape
+    )
     return mujoco_env
 
 
